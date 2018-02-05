@@ -53,6 +53,7 @@ public class AddForeignKeyConstraintGeneratorExasol extends AddForeignKeyConstra
 		sb.append(" FOREIGN KEY (")
 		.append(database.escapeColumnNameList(statement.getBaseColumnNames()))
 		.append(") REFERENCES ");
+		/*
 		if (statement.isDeferrable() || statement.isInitiallyDeferred()) {
 			if (statement.isInitiallyDeferred()) {
 				sb.append(" WITH NO CHECK OPTION ");
@@ -60,6 +61,7 @@ public class AddForeignKeyConstraintGeneratorExasol extends AddForeignKeyConstra
 		}else{
 			sb.append(" WITH CHECK OPTION " );
 		}
+		*/
 		sb.append(database.escapeTableName(statement.getReferencedTableCatalogName(), statement.getReferencedTableSchemaName(), statement.getReferencedTableName()))
 		.append("(")
 		.append(database.escapeColumnNameList(statement.getReferencedColumnNames()))

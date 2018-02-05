@@ -122,7 +122,24 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 			}
 		}
 		return defaultSchemaName;
-	//return getDatabaseName();
+	}
+
+    /**
+    * Set the Default Schema Name and open the schema.
+    */
+	@Override
+	public void  setDefaultSchemaName(String schemaName) {
+
+	    defaultSchemaName = schemaName ;
+
+
+	    if (null==defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
+		    try {
+			    ExecutorService.getInstance().getExecutor(this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
+		    } catch (DatabaseException e) {
+			    e.printStackTrace();
+		    }
+	    }
 	}
 
 	/**
@@ -138,7 +155,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	 */
 	@Override
 	public boolean supportsAutoIncrement() {
-		return false;
+		return true;
 	}
 
 	/**

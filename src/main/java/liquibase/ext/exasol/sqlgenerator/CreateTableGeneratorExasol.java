@@ -36,7 +36,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
         return PRIORITY_DATABASE;
     }
 
-    @Override
+    //@Override
     public boolean supports(CreateTableStatement statement, Database database) {
         return database instanceof ExasolDatabase;
     }
@@ -45,7 +45,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 	 * Modified to handle Exasol syntax for default values
 	 * @see liquibase.sqlgenerator.core.CreateTableGenerator#generateSql(liquibase.statement.core.CreateTableStatement, liquibase.database.Database, liquibase.sqlgenerator.SqlGeneratorChain)
 	 */
-	@Override
+	//@Override
 	public Sql[] generateSql(CreateTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
 		StringBuffer buffer = new StringBuffer();
                 buffer.append((statement.isReplaceIfExists() ? "CREATE OR REPLACE" : "CREATE") );
@@ -94,7 +94,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 			The signature for CreateTableStatement.getNotNullColumns() changed 
 
 			3.4.2 - ? : public Set<String> getNotNullColumns() 
-			3.5.? - ?   
+			3.5.? - ? : Map<String, NotNullConstraint> getNotNullColumns()  
 
 			statement.getNotNullColumns().contains(column) compiles ubut fails under current   
 			Map<String, NotNullConstraint> notNullColumns = statement.getNotNullColumns();
