@@ -43,7 +43,7 @@ public class CreateViewGeneratorExasol extends CreateViewGenerator {
 	 */
 	@Override
 	public Sql[] generateSql(CreateViewStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-		String createClause = (statement.isReplaceIfExists() ? "REPLACE " : "CREATE ") + "VIEW";
+		String createClause = (statement.isReplaceIfExists() ? "CREATE OR REPLACE " : "CREATE ") + "VIEW";
 
 		return new Sql[]{
 				new UnparsedSql(createClause + " " + database.escapeViewName(statement.getCatalogName(), statement.getSchemaName(), statement.getViewName()) + " AS " + statement.getSelectQuery())

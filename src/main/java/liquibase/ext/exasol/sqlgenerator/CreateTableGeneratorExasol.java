@@ -19,7 +19,7 @@ import liquibase.statement.NotNullConstraint;
 import liquibase.statement.AutoIncrementConstraint;
 import liquibase.statement.ForeignKeyConstraint;
 import liquibase.statement.UniqueConstraint;
-import liquibase.statement.core.CreateTableStatement;
+import liquibase.ext.exasol.statement.CreateTableStatement;
 import liquibase.util.StringUtils;
 
 import java.util.Iterator;
@@ -48,7 +48,8 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 	@Override
 	public Sql[] generateSql(CreateTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("CREATE TABLE ").append(database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName())).append(" ");
+                buffer.append((statement.isReplaceIfExists() ? "CREATE OR REPLACE" : "CREATE") );
+		buffer.append( " TABLE ").append(database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName())).append(" ");
 		buffer.append("(");
 		Iterator<String> columnIterator = statement.getColumns().iterator();
 
