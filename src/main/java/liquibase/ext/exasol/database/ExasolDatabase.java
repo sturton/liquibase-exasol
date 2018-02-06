@@ -106,7 +106,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 
 	@Override
 	public String getDefaultCatalogName() {
-		return "SYS"; //getDatabaseName();
+		return getDefaultSchemaName(); //getDatabaseName();
     }
 
     /**
@@ -133,7 +133,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	    defaultSchemaName = schemaName ;
 
 
-	    if (null==defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
+	    if (null!=defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 		    try {
 			    ExecutorService.getInstance().getExecutor(this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
 		    } catch (DatabaseException e) {
