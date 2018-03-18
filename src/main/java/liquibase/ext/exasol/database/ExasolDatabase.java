@@ -20,24 +20,42 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
+import liquibase.CatalogAndSchema;
 import liquibase.database.AbstractJdbcDatabase;
 import liquibase.database.DatabaseConnection;
 import liquibase.database.OfflineConnection;
 import liquibase.exception.DatabaseException;
 import liquibase.exception.UnexpectedLiquibaseException;
 import liquibase.executor.ExecutorService;
+import liquibase.logging.LogFactory;
+import liquibase.statement.DatabaseFunction;
+import liquibase.statement.core.RawCallStatement;
 import liquibase.statement.core.RawSqlStatement;
+
+import liquibase.structure.core.Catalog;
+import liquibase.structure.core.Schema;
 
 /**
  * Exasol implementation for liquibase
  *
  */
 public class ExasolDatabase extends AbstractJdbcDatabase {
+    public static final String PRODUCT_NAME = "EXASolution";
 
 	private String databaseName=null;
 
-	private String defaultSchemaName=null;
+	//private String defaultSchemaName=null;
 
+    public ExasolDatabase() {
+        super.unquotedObjectsAreUppercased=true;
+        super.setCurrentDateTimeFunction("SYSTIMESTAMP");
+        // Setting list of Oracle's native functions
+        dateFunctions.add(new DatabaseFunction("SYSDATE"));
+        dateFunctions.add(new DatabaseFunction("SYSTIMESTAMP"));
+        dateFunctions.add(new DatabaseFunction("CURRENT_TIMESTAMP"));
+        //super.sequenceNextValueFunction = "%s.nextval";
+        //super.sequenceCurrentValueFunction = "%s.currval";
+    }
 
 
 	protected String getDatabaseName(){
@@ -80,6 +98,25 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
     }
 
     @Override
+    public String getJdbcCatalogName(CatalogAndSchema schema) {
+        return null;
+    }
+
+    @Override
+    public String getJdbcSchemaName(CatalogAndSchema schema) {
+        //return correctObjectName(schema.getCatalogName() == null ? schema.getSchemaName() : schema.getCatalogName(), Schema.class);
+        return correctObjectName(schema.getSchemaName() , Schema.class);
+    }
+
+    @Override
+    public boolean jdbcCallsCatalogsSchemas() {
+        //return true;
+        return false;
+    }
+    
+
+
+    @Override
 	public boolean supportsInitiallyDeferrableColumns() {
 		return true;
 	}
@@ -101,19 +138,48 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 
 	@Override
 	public boolean supportsDDLInTransaction() {
-		return false;
+		return true;
 	}
 
+         @Override
+        public boolean supportsSchemas() {
+            return true;
+            //return false;
+        }
+        /*
+         @Override
+        public boolean supportsCatalogs() {
+            return false;
+        }
+        */
+        
+        /* * / 
 	@Override
 	public String getDefaultCatalogName() {
-		return getDefaultSchemaName(); //getDatabaseName();
-    }
+		return this.getDefaultSchemaName(); //getDatabaseName();
+        }
+        /* */
 
-    /**
-    * Default Schema Name is the currently open schema.
-    */
+    
+	@Override
+	public String getLiquibaseCatalogName() {
+		return null; 
+        }
+	
+	/*
+	@Override
+	public String getDefaultCatalogName() {//NOPMD
+            System.err.println("ExasolDatabase::getDefaultCatalogName=\""+super.getDefaultCatalogName()+"\"");
+	    return getDefaultSchemaName() ; // return super.getDefaultCatalogName() == null ? null : super.getDefaultCatalogName().toUpperCase();
+	}
+	*/
+
+	/**
+	* Default Schema Name is the currently open schema.
+	*/
 	@Override
 	public String getDefaultSchemaName() {
+                System.err.println("ExasolDatabase::getDefaultSchemaName=\""+defaultSchemaName+"\"");
 		if (null==defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 			try {
 				defaultSchemaName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT CURRENT_SCHEMA"), String.class);
@@ -121,16 +187,17 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 				e.printStackTrace();
 			}
 		}
+                System.err.println("ExasolDatabase::getDefaultSchemaName is now =\""+defaultSchemaName+"\"");
 		return defaultSchemaName;
 	}
 
-    /**
-    * Set the Default Schema Name and open the schema.
-    */
+        /**
+        * Set the Default Schema Name and open the schema.
+        */
 	@Override
 	public void  setDefaultSchemaName(String schemaName) {
-
-	    defaultSchemaName = schemaName ;
+            System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\"");
+	    super.setDefaultSchemaName ( schemaName ) ;
 
 
 	    if (null!=defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
@@ -147,9 +214,19 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	 */
 	@Override
 	public boolean supportsSequences() {
-		return false;
+		return false; 
 	}
 
+        
+	/**
+	 * Exasol supports Cascade Constraints
+	 */
+	@Override
+	public boolean supportsDropTableCascadeConstraints() {
+		return true;
+	}
+
+                
 	/**
 	 * No autoincrement in Exasol
 	 */
