@@ -57,9 +57,9 @@ public class AddDefaultValueGeneratorExasol extends AddDefaultValueGenerator {
         LiquibaseDataType defaultValueType = DataTypeFactory.getInstance().fromObject(defaultValue, database);
 		return new Sql[]{
 				new UnparsedSql("ALTER TABLE " + database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName())
-						+ " ADD  "
+						+ " ALTER COLUMN  "
                         + database.escapeColumnName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName(), statement.getColumnName())
-                        + " DEFAULT "
+                        + " SET DEFAULT "
 						+ (defaultValueType instanceof DateTimeType ?" TIMESTAMP ":(defaultValueType instanceof DateType ?" DATE ":(defaultValueType instanceof TimeType ?" TIME ":"")))
 						+ defaultValueType.objectToSql(defaultValue, database),
 						new Column().setRelation(new Table().setName(statement.getTableName()).setSchema(new Schema(statement.getCatalogName(), statement.getSchemaName())).setName(statement.getColumnName())))

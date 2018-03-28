@@ -33,7 +33,7 @@ public class ModifyDataTypeGeneratorExasol extends ModifyDataTypeGenerator {
 		String alterTable = "ALTER TABLE " + database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName());
 
 		// add "MODIFY"
-		alterTable += " ADD ";
+		alterTable += " MODIFY COLUMN ";
 
 		// add column name
 		alterTable += database.escapeColumnName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName(), statement.getColumnName());

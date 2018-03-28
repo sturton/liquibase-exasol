@@ -24,6 +24,7 @@ import liquibase.change.core.AddForeignKeyConstraintChange;
 import liquibase.change.core.AddLookupTableChange;
 import liquibase.change.core.AddPrimaryKeyChange;
 import liquibase.database.Database;
+import liquibase.structure.core.Column;
 import liquibase.ext.exasol.database.ExasolDatabase;
 import liquibase.servicelocator.PrioritizedService;
 import liquibase.statement.SqlStatement;
@@ -61,7 +62,7 @@ public class AddLookupTableChangeExasol extends AddLookupTableChange {
         String existingTableCatalogName = getExistingTableCatalogName() == null?database.getDefaultCatalogName():getExistingTableCatalogName();
 
 		SqlStatement[] createTablesSQL = {new RawSqlStatement("CREATE TABLE " + database.escapeTableName(newTableCatalogName, newTableSchemaName, getNewTableName())
-				+ " ( "+getNewColumnName()+" NOT NULL) AS (SELECT DISTINCT " + getExistingColumnName() + " AS " + getNewColumnName() + " FROM " + database.escapeTableName(existingTableCatalogName, existingTableSchemaName, getExistingTableName()) + " WHERE " + getExistingColumnName() + " IS NOT NULL) WITH DATA")};
+				+" AS SELECT DISTINCT " + database.escapeObjectName(getExistingColumnName(), Column.class) + " AS " + database.escapeObjectName(getNewColumnName(), Column.class) + " FROM " + database.escapeTableName(existingTableCatalogName, existingTableSchemaName, getExistingTableName()) + " WHERE " + database.escapeObjectName(getExistingColumnName(), Column.class) + " IS NOT NULL WITH DATA")};
 
 
 		statements.addAll(Arrays.asList(createTablesSQL));

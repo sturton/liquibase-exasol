@@ -15,6 +15,7 @@
  */
 package liquibase.ext.exasol.database;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -63,9 +64,12 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 			try {
 				databaseName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT PARAM_VALUE FROM SYS.EXA_METADATA WHERE PARAM_NAME = 'databaseName'"), String.class);
 			} catch (DatabaseException e) {
-				e.printStackTrace();
+				System.err.println("ExasolDatabase::getDatabaseName - Problem returning databaseName \""+databaseName+"\"");
+				e.printStackTrace(System.err);
+				e.printStackTrace(System.out);
 			}
 		}
+                System.err.println("ExasolDatabase::getDatabaseName RETURNING \""+databaseName+"\"");
 		return databaseName;
 	}
 
@@ -185,6 +189,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 				defaultSchemaName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT CURRENT_SCHEMA"), String.class);
 			} catch (DatabaseException e) {
 				e.printStackTrace();
+				e.printStackTrace(System.err);
 			}
 		}
                 System.err.println("ExasolDatabase::getDefaultSchemaName is now =\""+defaultSchemaName+"\"");
@@ -198,15 +203,20 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	public void  setDefaultSchemaName(String schemaName) {
             System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\"");
 	    super.setDefaultSchemaName ( schemaName ) ;
+            System.err.println("ExasolDatabase::super.setDefaultSchemaName=\""+schemaName+"\"");
 
 
 	    if (null!=defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 		    try {
+                            System.err.println("ExasolDatabase:: OPEN SCHEMA "+schemaName+"\"");
 			    ExecutorService.getInstance().getExecutor(this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
+                            System.err.println("ExasolDatabase:: OPENed SCHEMA " + schemaName );
 		    } catch (DatabaseException e) {
 			    e.printStackTrace();
+			    e.printStackTrace(System.err);
 		    }
 	    }
+            System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\" RETURNING");
 	}
 
 	/**
@@ -249,6 +259,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 		reserved = reserved || "POSITION".equalsIgnoreCase(string);
 		reserved = reserved || "YEAR".equalsIgnoreCase(string);
 		reserved = reserved || "ACCOUNT".equalsIgnoreCase(string);
+		reserved = reserved || "STATE".equalsIgnoreCase(string);
 		return reserved;
 	}
 
@@ -277,6 +288,49 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	}
 
 
+    /**
+     * Returns Exasol-specific auto-increment DDL clause.
+     */
+    @Override
+    public String getAutoIncrementClause(final BigInteger startWith, final BigInteger incrementBy) {
+        if (!supportsAutoIncrement()) {
+            return "";
+        }
+
+        // generate an SQL:2003 standard compliant auto increment clause by default
+
+        String autoIncrementClause = getAutoIncrementClause();
+
+	/*
+        boolean generateStartWith = generateAutoIncrementStartWith(startWith);
+        boolean generateIncrementBy = generateAutoIncrementBy(incrementBy);
+
+        if (generateStartWith || generateIncrementBy) {
+            autoIncrementClause += getAutoIncrementOpening();
+
+            if (generateStartWith) {
+                autoIncrementClause += String.format(getAutoIncrementStartWithClause(), (startWith == null) ? defaultAutoIncrementStartWith : startWith);
+            }
+
+            if (generateIncrementBy) {
+                if (generateStartWith) {
+                    autoIncrementClause += ", ";
+                }
+
+                autoIncrementClause += String.format(getAutoIncrementByClause(), (incrementBy == null) ? defaultAutoIncrementBy : incrementBy);
+            }
+
+            autoIncrementClause += getAutoIncrementClosing();
+        }
+	*/
+
+        return autoIncrementClause;
+    }
+
+    @Override
+    protected String getAutoIncrementClause() {
+        return "IDENTITY";
+    }
 
 
 }

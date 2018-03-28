@@ -33,6 +33,6 @@ public class DropPrimaryKeyGeneratorExasol extends DropPrimaryKeyGenerator {
 	public Sql[] generateSql(DropPrimaryKeyStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
 		String schemaName = statement.getSchemaName();
 
-		return new Sql[] {new UnparsedSql("DROP INDEX " + database.escapeObjectName(statement.getConstraintName(), PrimaryKey.class) +" ON " + database.escapeTableName(statement.getCatalogName(), schemaName, statement.getTableName()) ) };
+		return new Sql[] {new UnparsedSql( "ALTER TABLE " + database.escapeTableName(statement.getCatalogName(), schemaName, statement.getTableName()) +" DROP CONSTRAINT " + database.escapeObjectName(statement.getConstraintName(), PrimaryKey.class) ) };
 	}
 }
