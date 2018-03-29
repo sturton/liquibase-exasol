@@ -56,19 +56,19 @@ public class AddColumnGeneratorExasol extends liquibase.sqlgenerator.core.AddCol
 			alterTable += " " + database.getAutoIncrementClause(null, null);
 		}
 
+		if (statement.getDefaultValue()!=null){
+			alterTable += " DEFAULT ";
+			LiquibaseDataType defaultValueType = DataTypeFactory.getInstance().fromDescription(statement.getColumnType() + (statement.isAutoIncrement() ? "{autoIncrement:true}" : ""), database);
+			alterTable +=(defaultValueType instanceof DateTimeType ?" TIMESTAMP ":(defaultValueType instanceof DateType ?" DATE ":(defaultValueType instanceof TimeType ?" TIME ":"")));
+			alterTable += DataTypeFactory.getInstance().fromObject(statement.getDefaultValue(), database).objectToSql(statement.getDefaultValue(), database);
+		}
+
 		if (!statement.isNullable()) {
 			alterTable += " NOT NULL";
 		} else {
 			if (database instanceof SybaseDatabase || database instanceof SybaseASADatabase) {
 				alterTable += " NULL";
 			}
-		}
-
-		if (statement.getDefaultValue()!=null){
-			alterTable += " DEFAULT ";
-			LiquibaseDataType defaultValueType = DataTypeFactory.getInstance().fromDescription(statement.getColumnType() + (statement.isAutoIncrement() ? "{autoIncrement:true}" : ""), database);
-			alterTable +=(defaultValueType instanceof DateTimeType ?" TIMESTAMP ":(defaultValueType instanceof DateType ?" DATE ":(defaultValueType instanceof TimeType ?" TIME ":"")));
-			alterTable += DataTypeFactory.getInstance().fromObject(statement.getDefaultValue(), database).objectToSql(statement.getDefaultValue(), database);
 		}
 
 		List<Sql> returnSql = new ArrayList<Sql>();
