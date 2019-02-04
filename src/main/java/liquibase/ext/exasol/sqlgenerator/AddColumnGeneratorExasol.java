@@ -45,8 +45,79 @@ public class AddColumnGeneratorExasol extends liquibase.sqlgenerator.core.AddCol
     }
 
 
+
+/*
+    @Override
+    private Sql[] generateMultipleColumns(List<AddColumnStatement> columns, Database database) {
+        List<Sql> result = new ArrayList<Sql>();
+        if (database instanceof MySQLDatabase) {
+            String alterTable = generateSingleColumBaseSQL(columns.get(0), database);
+            for (int i = 0; i < columns.size(); i++) {
+                alterTable += generateSingleColumnSQL(columns.get(i), database);
+                if (i < columns.size() - 1) {
+                    alterTable += ",";
+                }
+            }
+            result.add(new UnparsedSql(alterTable, getAffectedColumns(columns)));
+        } else {
+            for (AddColumnStatement column : columns) {
+                result.addAll(Arrays.asList(generateSingleColumn(column, database)));
+            }
+        }
+        return result.toArray(new Sql[result.size()]);
+    }
+
+
+    @Override
+    protected String generateSingleColumnSQL(AddColumnStatement statement, Database database) {
+        String alterTable = " ADD " + database.escapeColumnName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName(), statement.getColumnName()) + " " + DataTypeFactory.getInstance().fromDescription(statement.getColumnType() + (statement.isAutoIncrement() ? "{autoIncrement:true}" : ""), database).toDatabaseDataType(database);
+
+        if (statement.isAutoIncrement() && database.supportsAutoIncrement()) {
+            AutoIncrementConstraint autoIncrementConstraint = statement.getAutoIncrementConstraint();
+            alterTable += " " + database.getAutoIncrementClause(autoIncrementConstraint.getStartWith(), autoIncrementConstraint.getIncrementBy());
+        }
+
+        alterTable += getDefaultClause(statement, database);
+
+        if (!statement.isNullable()) {
+            alterTable += " NOT NULL";
+        } else {
+            if (database instanceof SybaseDatabase || database instanceof SybaseASADatabase || database instanceof MySQLDatabase) {
+                alterTable += " NULL";
+            }
+        }
+
+        if (statement.isPrimaryKey()) {
+            alterTable += " PRIMARY KEY";
+        }
+
+        if( database instanceof MySQLDatabase && statement.getRemarks() != null ) {
+            alterTable += " COMMENT '" + statement.getRemarks() + "' ";
+        }
+
+        if (statement.getAddAfterColumn() != null && !statement.getAddAfterColumn().isEmpty()) {
+            alterTable += " AFTER `" + statement.getAddAfterColumn() + "` ";
+        }
+
+        return alterTable;
+    }
+
+
+    @Override
+    private String getDefaultClause(AddColumnStatement statement, Database database) {
+        String clause = "";
+        Object defaultValue = statement.getDefaultValue();
+        if (defaultValue != null) {
+	    clause += " DEFAULT " + DataTypeFactory.getInstance().fromObject(defaultValue, database).objectToSql(defaultValue, database);
+        }
+        return clause;
+    }
+
+/*
 	@Override
 	public Sql[] generateSql(AddColumnStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+		Iterator<String> columnIterator = statement.getColumns().iterator();
+
 		String alterTable = "ALTER TABLE " + database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName()) +
                 " ADD " +
                 database.escapeColumnName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName(), statement.getColumnName())
@@ -88,5 +159,6 @@ public class AddColumnGeneratorExasol extends liquibase.sqlgenerator.core.AddCol
 
 		return returnSql.toArray(new Sql[returnSql.size()]);
 	}
+*/
 
 }

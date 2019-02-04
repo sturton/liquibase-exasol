@@ -98,7 +98,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 
 			statement.getNotNullColumns().contains(column) compiles but fails under current   
 			Map<String, NotNullConstraint> notNullColumns = statement.getNotNullColumns();
-			* /
+			*/
 			if (statement.getNotNullColumns().contains(column) ) {
 				buffer.append(" NOT NULL");
 			}
