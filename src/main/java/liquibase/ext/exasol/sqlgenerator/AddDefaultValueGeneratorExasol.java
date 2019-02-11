@@ -60,9 +60,16 @@ public class AddDefaultValueGeneratorExasol extends AddDefaultValueGenerator {
 						+ " ALTER COLUMN  "
                         + database.escapeColumnName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName(), statement.getColumnName())
                         + " SET DEFAULT "
-						+ (defaultValueType instanceof DateTimeType ?" TIMESTAMP ":(defaultValueType instanceof DateType ?" DATE ":(defaultValueType instanceof TimeType ?" TIME ":"")))
-						+ defaultValueType.objectToSql(defaultValue, database),
-						new Column().setRelation(new Table().setName(statement.getTableName()).setSchema(new Schema(statement.getCatalogName(), statement.getSchemaName())).setName(statement.getColumnName())))
+						+ (defaultValueType instanceof DateTimeType ?" TIMESTAMP "+ defaultValueType.objectToSql(defaultValue, database)
+							:(defaultValueType instanceof DateType ?" DATE "+ defaultValueType.objectToSql(defaultValue, database)
+								//:(defaultValueType instanceof TimeType ?" TO_TIMESTAMP("+ "'"+defaultValueType.objectToSql(defaultValue, database)+"','HH24:MI:SS.FF9')"
+								:(defaultValueType instanceof TimeType ? defaultValueType.objectToSql(defaultValue, database)
+									: defaultValueType.objectToSql(defaultValue, database)
+									)
+							)
+						  )
+						//+ "'"+defaultValueType.objectToSql(defaultValue, database)+"'"
+						,new Column().setRelation(new Table().setName(statement.getTableName()).setSchema(new Schema(statement.getCatalogName(), statement.getSchemaName())).setName(statement.getColumnName())))
 		};
 	}
 }

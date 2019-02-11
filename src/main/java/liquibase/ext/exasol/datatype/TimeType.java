@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
 public class TimeType extends liquibase.datatype.core.TimeType {
-
+    
     @Override
     public boolean supports(Database database) {
         return database instanceof ExasolDatabase;
@@ -30,6 +30,7 @@ public class TimeType extends liquibase.datatype.core.TimeType {
 
     @Override
     public Object sqlToObject(String value, Database database) {
+	System.out.println("ExasolTimeType::SqlToObject");
         if (zeroTime(value)) {
             return value;
         }
@@ -37,7 +38,7 @@ public class TimeType extends liquibase.datatype.core.TimeType {
         try {
             DateFormat timeFormat = getTimeFormat(database);
 
-            if (value.matches("to_date\\('\\d+:\\d+:\\d+', 'HH24:MI:SS'\\)")) {
+            if (value.matches("to_timestamp\\('\\d+:\\d+:\\d+', 'HH24:MI:SS.FF9'\\)")) {
                 timeFormat = new SimpleDateFormat("HH:mm:s");
                 value = value.replaceFirst(".*?'", "").replaceFirst("',.*","");
             }
@@ -48,8 +49,33 @@ public class TimeType extends liquibase.datatype.core.TimeType {
         }
     }
 
+    /**
+     * Returns the value object in a format to include in SQL. Quote if necessary.
+     */
+    @Override
+    public String objectToSql(Object value, Database database) {
+	System.out.println("ExasolTimeType::objectToSql");
+        if (value == null || value.toString().equalsIgnoreCase("null")) {
+            return null;
+        } else if (value instanceof DatabaseFunction) {
+            return functionToSql((DatabaseFunction) value, database);
+        } else if (value instanceof java.sql.Time) {
+	System.out.println("ExasolTimeType::objectToSql-java.sql.Time");
+            return database.getTimeLiteral(((java.sql.Time) value));
+        }
+	System.out.println("ExasolTimeType::objectToSql-default");
+	System.out.println("ExasolTimeType::objectToSql-default"+value.getClass().getName());
+        return otherToSql(value, database);
+    }
+
+
     private boolean zeroTime(String stringVal) {
         return stringVal.replace("-","").replace(":", "").replace(" ","").replace("0","").equals("");
+    }
+
+    @Override
+    protected DateFormat getTimeFormat(Database database) {
+        return new SimpleDateFormat("HH:mm:ss.SSS");
     }
 
 

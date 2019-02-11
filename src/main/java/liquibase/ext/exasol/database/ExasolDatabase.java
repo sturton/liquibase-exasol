@@ -284,8 +284,73 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	 */
 	@Override
 	public String getTimeLiteral(Time date) {
-		return "'"+new SimpleDateFormat("hh:mm:ss.SSS").format(date)+"'";
+		System.out.println("ExasolDatabase::getTimeLiteral..");
+		return getDateLiteral(new SimpleDateFormat("hh:mm:ss.SSS").format(date));
 	}
+
+    @Override
+    protected boolean isTimeOnly(final String isoDate) {
+	return 
+		isoDate.length() == "hh:mm:ss".length()
+		|| ( isoDate.lastIndexOf('.') > 0 
+                     && isoDate.substring(0, isoDate.lastIndexOf('.')).length() == "hh:mm:ss".length() 
+		   )
+	;
+    }
+
+    /**
+     * Return an Exasol date literal with the same value as a string formatted using ISO 8601.
+     * <p/>
+     * Convert an ISO8601 date string to one of the following results:
+     * to_date('1995-05-23', 'YYYY-MM-DD')
+     * to_date('1995-05-23 09:23:59', 'YYYY-MM-DD HH24:MI:SS')
+     * <p/>
+     * Implementation restriction:
+     * Currently, only the following subsets of ISO8601 are supported:
+     * YYYY-MM-DD
+     * YYYY-MM-DDThh:mm:ss
+     * hh:mm:ss
+     */
+    @Override
+    public String getDateLiteral(String isoDate) {
+	System.err.println("ExasolDatabase::getDateLiteral for \""+isoDate+"\"");
+        String normalLiteral = super.getDateLiteral(isoDate);
+	System.err.println("ExasolDatabase::getDateLiteral normalLiteral== \""+normalLiteral+"\"");
+
+        if (isDateOnly(isoDate)) {
+	System.err.println("ExasolDatabase::getDateLiteral isDateOnly");
+            StringBuffer val = new StringBuffer();
+            val.append("to_date(");
+            val.append(normalLiteral);
+            val.append(", 'YYYY-MM-DD')");
+            return val.toString();
+        } else if (isTimeOnly(isoDate)) {
+	System.err.println("ExasolDatabase::getDateLiteral isTimeOnly");
+            StringBuffer val = new StringBuffer();
+            val.append("to_timestamp(");
+            val.append(normalLiteral);
+            val.append(", 'HH24:MI:SS.FF9')");
+            return val.toString();
+        } else if (isTimestamp(isoDate)) {
+	System.err.println("ExasolDatabase::getDateLiteral isTimestampOnly");
+            StringBuffer val = new StringBuffer(36);
+            val.append("to_timestamp(");
+            val.append(normalLiteral);
+            val.append(", 'YYYY-MM-DD HH24:MI:SS.FF9')");
+            return val.toString();
+        } else if (isDateTime(isoDate)) {
+	System.err.println("ExasolDatabase::getDateLiteral isDateTimeOnly");
+            normalLiteral = normalLiteral.substring(0, normalLiteral.lastIndexOf('.')) + "'";
+
+            StringBuffer val = new StringBuffer(36);
+            val.append("to_timestamp(");
+            val.append(normalLiteral);
+            val.append(", 'YYYY-MM-DD HH24:MI:SS.FF9')");
+            return val.toString();
+        } else {
+            return "UNSUPPORTED:" + isoDate;
+        }
+    }
 
 
     /**
