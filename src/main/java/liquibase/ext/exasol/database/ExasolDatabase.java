@@ -253,7 +253,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 		boolean reserved =false;
 		reserved = reserved || "VALUE".equalsIgnoreCase(string);
 		reserved = reserved || "PASSWORD".equalsIgnoreCase(string);
-		reserved = reserved || "TITLE".equalsIgnoreCase(string);
+		//@TODO reserved = reserved || "TITLE".equalsIgnoreCase(string);
 		reserved = reserved || "ENABLED".equalsIgnoreCase(string);
 		reserved = reserved || "RANK".equalsIgnoreCase(string);
 		reserved = reserved || "POSITION".equalsIgnoreCase(string);

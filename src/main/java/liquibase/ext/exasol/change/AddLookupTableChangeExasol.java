@@ -71,6 +71,7 @@ public class AddLookupTableChangeExasol extends AddLookupTableChange {
 		addPKChange.setSchemaName(newTableSchemaName);
 		addPKChange.setTableName(getNewTableName());
 		addPKChange.setColumnNames(getNewColumnName());
+		addPKChange.setConstraintName("PK_"+getNewTableName()); //Prevent Anonymous SYS_<NUMBER> Constraint Names
 		statements.addAll(Arrays.asList(addPKChange.generateStatements(database)));
 
 		AddForeignKeyConstraintChange addFKChange = new AddForeignKeyConstraintChange();
