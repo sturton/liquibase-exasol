@@ -66,7 +66,7 @@ public class ColumnSnapshotGeneratorExasol extends ColumnSnapshotGenerator {
         column.setName(StringUtils.trimToNull(rawColumnName));
         column.setRelation(table);
         column.setRemarks(remarks);
-        //@TODO Not in 3.43 column.setOrder(position);
+        column.setOrder(position);
 
 	//Exasol throws a NullPointerException  
 	System.out.println("ColumnSnapshotGeneratorExasol::readColumn(...) before getBoolean(NULLABLE) for database=="+database + ", table="+ rawTableName);

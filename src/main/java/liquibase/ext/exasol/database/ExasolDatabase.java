@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 
 import liquibase.CatalogAndSchema;
 import liquibase.database.AbstractJdbcDatabase;
+import liquibase.database.Database;
 import liquibase.database.DatabaseConnection;
 import liquibase.database.OfflineConnection;
 import liquibase.exception.DatabaseException;
@@ -30,6 +31,7 @@ import liquibase.exception.UnexpectedLiquibaseException;
 import liquibase.executor.ExecutorService;
 import liquibase.logging.LogFactory;
 import liquibase.statement.DatabaseFunction;
+import liquibase.statement.SqlStatement;
 import liquibase.statement.core.RawCallStatement;
 import liquibase.statement.core.RawSqlStatement;
 
@@ -40,7 +42,7 @@ import liquibase.structure.core.Schema;
  * Exasol implementation for liquibase
  *
  */
-public class ExasolDatabase extends AbstractJdbcDatabase {
+public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
     public static final String PRODUCT_NAME = "EXASolution";
 
 	private String databaseName=null;
@@ -218,6 +220,19 @@ public class ExasolDatabase extends AbstractJdbcDatabase {
 	    }
             System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\" RETURNING");
 	}
+
+    /**
+     * Used to obtain the connection schema name through a statement
+     * Override this method to change the statement.
+     * Only override this if getConnectionSchemaName is left unchanges or is using this method.
+     * @see AbstractJdbcDatabase#getConnectionSchemaName()
+     * @return
+     */
+    @Override
+    protected SqlStatement getConnectionSchemaNameCallStatement(){
+        return new RawCallStatement("SELECT current_schema");
+    }
+
 
 	/**
 	 * No sequence in Exasol

@@ -4,7 +4,7 @@
     <groupId>org.liquibase.ext</groupId>
     <artifactId>liquibase-exasol</artifactId>
     <name>Liquibase Exasol extension</name>
-    <version>3.4.3-SNAPSHOT</version>
+    <version>3.5.6-SNAPSHOT</version>
     <description>Adds support for Exasol Database to Liquibase</description>
     <url>http://www.liquibase.org</url>
 
@@ -29,6 +29,23 @@
 		<url>https://github.com/liquibase/liquibase-exasol</url>
     </scm>
 
+    <repositories>
+	<repository>
+		<id>maven.exasol.com</id>
+		<url>https://maven.exasol.com/artifactory/exasol-releases</url>
+		<snapshots>
+			<enabled>false</enabled>
+		</snapshots>
+	</repository>
+	<repository>
+		<id>maven.exasol.com-snapshots</id>
+		<url>https://maven.exasol.com/artifactory/exasol-snapshots</url>
+		<snapshots>
+			<enabled>true</enabled>
+		</snapshots>
+	</repository>
+    </repositories>
+
     <developers>
         <developer>
             <id>nvoxland</id>
@@ -48,7 +65,7 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-	    <version>3.4.3-SNAPSHOT</version>
+	    <version>3.5.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

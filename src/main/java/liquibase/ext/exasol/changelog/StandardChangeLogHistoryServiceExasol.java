@@ -7,6 +7,8 @@ import liquibase.ext.exasol.database.ExasolDatabase;
 import liquibase.servicelocator.PrioritizedService;
 import liquibase.snapshot.SnapshotGeneratorFactory;
 import liquibase.snapshot.jvm.ColumnSnapshotGenerator;
+import liquibase.sqlgenerator.core.CreateDatabaseChangeLogLockTableGenerator;
+import liquibase.sqlgenerator.core.CreateDatabaseChangeLogTableGenerator;
 
 public class StandardChangeLogHistoryServiceExasol extends StandardChangeLogHistoryService {
 
@@ -24,6 +26,8 @@ public class StandardChangeLogHistoryServiceExasol extends StandardChangeLogHist
     public void init() throws DatabaseException {
         //@TODO - can we replace this using SnapshotGenerate replaces() method?
         SnapshotGeneratorFactory.getInstance().unregister(ColumnSnapshotGenerator.class);
+        SnapshotGeneratorFactory.getInstance().unregister( CreateDatabaseChangeLogTableGenerator.class);
+        SnapshotGeneratorFactory.getInstance().unregister( CreateDatabaseChangeLogLockTableGenerator.class);
         super.init();
     }
 }
