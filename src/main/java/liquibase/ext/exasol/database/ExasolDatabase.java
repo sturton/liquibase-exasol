@@ -47,17 +47,14 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 
 	private String databaseName=null;
 
-	//private String defaultSchemaName=null;
 
     public ExasolDatabase() {
         super.unquotedObjectsAreUppercased=true;
         super.setCurrentDateTimeFunction("SYSTIMESTAMP");
-        // Setting list of Oracle's native functions
+        // Setting list of Exasol's native functions
         dateFunctions.add(new DatabaseFunction("SYSDATE"));
         dateFunctions.add(new DatabaseFunction("SYSTIMESTAMP"));
         dateFunctions.add(new DatabaseFunction("CURRENT_TIMESTAMP"));
-        //super.sequenceNextValueFunction = "%s.nextval";
-        //super.sequenceCurrentValueFunction = "%s.currval";
     }
 
 
@@ -66,12 +63,9 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 			try {
 				databaseName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT PARAM_VALUE FROM SYS.EXA_METADATA WHERE PARAM_NAME = 'databaseName'"), String.class);
 			} catch (DatabaseException e) {
-				System.err.println("ExasolDatabase::getDatabaseName - Problem returning databaseName \""+databaseName+"\"");
 				e.printStackTrace(System.err);
-				e.printStackTrace(System.out);
 			}
 		}
-                System.err.println("ExasolDatabase::getDatabaseName RETURNING \""+databaseName+"\"");
 		return databaseName;
 	}
 
@@ -175,7 +169,6 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 	/*
 	@Override
 	public String getDefaultCatalogName() {//NOPMD
-            System.err.println("ExasolDatabase::getDefaultCatalogName=\""+super.getDefaultCatalogName()+"\"");
 	    return getDefaultSchemaName() ; // return super.getDefaultCatalogName() == null ? null : super.getDefaultCatalogName().toUpperCase();
 	}
 	*/
@@ -185,16 +178,13 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 	*/
 	@Override
 	public String getDefaultSchemaName() {
-                System.err.println("ExasolDatabase::getDefaultSchemaName=\""+defaultSchemaName+"\"");
 		if (null==defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 			try {
 				defaultSchemaName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT CURRENT_SCHEMA"), String.class);
 			} catch (DatabaseException e) {
-				e.printStackTrace();
 				e.printStackTrace(System.err);
 			}
 		}
-                System.err.println("ExasolDatabase::getDefaultSchemaName is now =\""+defaultSchemaName+"\"");
 		return defaultSchemaName;
 	}
 
@@ -203,22 +193,16 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
         */
 	@Override
 	public void  setDefaultSchemaName(String schemaName) {
-            System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\"");
 	    super.setDefaultSchemaName ( schemaName ) ;
-            System.err.println("ExasolDatabase::super.setDefaultSchemaName=\""+schemaName+"\"");
 
 
 	    if (null!=defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 		    try {
-                            System.err.println("ExasolDatabase:: OPEN SCHEMA "+schemaName+"\"");
 			    ExecutorService.getInstance().getExecutor(this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
-                            System.err.println("ExasolDatabase:: OPENed SCHEMA " + schemaName );
 		    } catch (DatabaseException e) {
-			    e.printStackTrace();
 			    e.printStackTrace(System.err);
 		    }
 	    }
-            System.err.println("ExasolDatabase::setDefaultSchemaName=\""+schemaName+"\" RETURNING");
 	}
 
     /**
@@ -268,7 +252,6 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 		boolean reserved =false;
 		reserved = reserved || "VALUE".equalsIgnoreCase(string);
 		reserved = reserved || "PASSWORD".equalsIgnoreCase(string);
-		//@TODO reserved = reserved || "TITLE".equalsIgnoreCase(string);
 		reserved = reserved || "ENABLED".equalsIgnoreCase(string);
 		reserved = reserved || "RANK".equalsIgnoreCase(string);
 		reserved = reserved || "POSITION".equalsIgnoreCase(string);
@@ -299,7 +282,6 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 	 */
 	@Override
 	public String getTimeLiteral(Time date) {
-		System.out.println("ExasolDatabase::getTimeLiteral..");
 		return getDateLiteral(new SimpleDateFormat("hh:mm:ss.SSS").format(date));
 	}
 
@@ -328,33 +310,27 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
      */
     @Override
     public String getDateLiteral(String isoDate) {
-	System.err.println("ExasolDatabase::getDateLiteral for \""+isoDate+"\"");
         String normalLiteral = super.getDateLiteral(isoDate);
-	System.err.println("ExasolDatabase::getDateLiteral normalLiteral== \""+normalLiteral+"\"");
 
         if (isDateOnly(isoDate)) {
-	System.err.println("ExasolDatabase::getDateLiteral isDateOnly");
             StringBuffer val = new StringBuffer();
             val.append("to_date(");
             val.append(normalLiteral);
             val.append(", 'YYYY-MM-DD')");
             return val.toString();
         } else if (isTimeOnly(isoDate)) {
-	System.err.println("ExasolDatabase::getDateLiteral isTimeOnly");
             StringBuffer val = new StringBuffer();
             val.append("to_timestamp(");
             val.append(normalLiteral);
             val.append(", 'HH24:MI:SS.FF9')");
             return val.toString();
         } else if (isTimestamp(isoDate)) {
-	System.err.println("ExasolDatabase::getDateLiteral isTimestampOnly");
             StringBuffer val = new StringBuffer(36);
             val.append("to_timestamp(");
             val.append(normalLiteral);
             val.append(", 'YYYY-MM-DD HH24:MI:SS.FF9')");
             return val.toString();
         } else if (isDateTime(isoDate)) {
-	System.err.println("ExasolDatabase::getDateLiteral isDateTimeOnly");
             normalLiteral = normalLiteral.substring(0, normalLiteral.lastIndexOf('.')) + "'";
 
             StringBuffer val = new StringBuffer(36);
@@ -380,29 +356,6 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
         // generate an SQL:2003 standard compliant auto increment clause by default
 
         String autoIncrementClause = getAutoIncrementClause();
-
-	/*
-        boolean generateStartWith = generateAutoIncrementStartWith(startWith);
-        boolean generateIncrementBy = generateAutoIncrementBy(incrementBy);
-
-        if (generateStartWith || generateIncrementBy) {
-            autoIncrementClause += getAutoIncrementOpening();
-
-            if (generateStartWith) {
-                autoIncrementClause += String.format(getAutoIncrementStartWithClause(), (startWith == null) ? defaultAutoIncrementStartWith : startWith);
-            }
-
-            if (generateIncrementBy) {
-                if (generateStartWith) {
-                    autoIncrementClause += ", ";
-                }
-
-                autoIncrementClause += String.format(getAutoIncrementByClause(), (incrementBy == null) ? defaultAutoIncrementBy : incrementBy);
-            }
-
-            autoIncrementClause += getAutoIncrementClosing();
-        }
-	*/
 
         return autoIncrementClause;
     }

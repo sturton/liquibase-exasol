@@ -37,19 +37,9 @@ public class ColumnSnapshotGeneratorExasol extends ColumnSnapshotGenerator {
         return database instanceof ExasolDatabase ? SnapshotGenerator.PRIORITY_DATABASE : SnapshotGenerator.PRIORITY_NONE;
     }
 
-    /*
-    @Override
-    public Class<? extends SnapshotGenerator>[] replaces() {
-        Class<? extends SnapshotGenerator>[] replacedSnapshotGenerators  = ( Class<? extends SnapshotGenerator>[]) new Class[1] ;
-       	replacedSnapshotGenerators[0] = ColumnSnapshotGenerator.class ;
-        return replacedSnapshotGenerators ; 
-    }
-    */
-
 
     @Override
     protected Column readColumn(CachedRow columnMetadataResultSet, Relation table, Database database) throws SQLException, DatabaseException {
-	System.out.println("ColumnSnapshotGeneratorExasol::readColumn(...) for database=="+database );
 
         String rawTableName = (String) columnMetadataResultSet.get("TABLE_NAME");
         String rawColumnName = (String) columnMetadataResultSet.get("COLUMN_NAME");
@@ -68,8 +58,6 @@ public class ColumnSnapshotGeneratorExasol extends ColumnSnapshotGenerator {
         column.setRemarks(remarks);
         column.setOrder(position);
 
-	//Exasol throws a NullPointerException  
-	System.out.println("ColumnSnapshotGeneratorExasol::readColumn(...) before getBoolean(NULLABLE) for database=="+database + ", table="+ rawTableName);
         Boolean nullable = columnMetadataResultSet.getBoolean("NULLABLE");
         if (nullable == null) {
             column.setNullable(false);

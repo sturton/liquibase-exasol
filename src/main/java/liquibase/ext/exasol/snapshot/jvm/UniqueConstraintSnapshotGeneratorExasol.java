@@ -29,19 +29,9 @@ public class UniqueConstraintSnapshotGeneratorExasol extends JdbcSnapshotGenerat
 
     @Override
     public int getPriority(Class<? extends DatabaseObject> objectType, Database database) {
-	System.out.println("UniqueConstraintSnapshotGeneratorExasol:getPriority");
-        if (null==database)  
-	{
-	    System.out.println("UniqueConstraintSnapshotGeneratorExasol:getPriority - Database is null ");
-	} 
-	else 
-	{
-	    System.out.println("UniqueConstraintSnapshotGeneratorExasol: priority check for Database="+database.getShortName());
-	}
         if (database instanceof ExasolDatabase) {
             return PRIORITY_ADDITIONAL;
         }
-	System.out.println("UniqueConstraintSnapshotGeneratorExasol: (default) priority ="+PRIORITY_NONE);
 	return PRIORITY_NONE;
     }
 
@@ -58,7 +48,6 @@ public class UniqueConstraintSnapshotGeneratorExasol extends JdbcSnapshotGenerat
         Database database = snapshot.getDatabase();
 
 	//Exasol does not support UNIQUE constraints 
-	System.out.println("UniqueConstraintSnapshotGeneratorExasol:snapshotObject called - returning null");
 	return null;
     }
 
@@ -69,7 +58,6 @@ public class UniqueConstraintSnapshotGeneratorExasol extends JdbcSnapshotGenerat
     }
 
     protected List<CachedRow> listConstraints(Table table, DatabaseSnapshot snapshot, Schema schema) throws DatabaseException, SQLException {
-        //return ((JdbcDatabaseSnapshot) snapshot).getMetaData().getUniqueConstraints(schema.getCatalogName(), schema.getName(), table.getName());
 	List<CachedRow> returnList = new ArrayList<CachedRow>();
 	return returnList;
     }

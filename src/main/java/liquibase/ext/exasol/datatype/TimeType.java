@@ -30,7 +30,6 @@ public class TimeType extends liquibase.datatype.core.TimeType {
 
     @Override
     public Object sqlToObject(String value, Database database) {
-	System.out.println("ExasolTimeType::SqlToObject");
         if (zeroTime(value)) {
             return value;
         }
@@ -54,17 +53,13 @@ public class TimeType extends liquibase.datatype.core.TimeType {
      */
     @Override
     public String objectToSql(Object value, Database database) {
-	System.out.println("ExasolTimeType::objectToSql");
         if (value == null || value.toString().equalsIgnoreCase("null")) {
             return null;
         } else if (value instanceof DatabaseFunction) {
             return functionToSql((DatabaseFunction) value, database);
         } else if (value instanceof java.sql.Time) {
-	System.out.println("ExasolTimeType::objectToSql-java.sql.Time");
             return database.getTimeLiteral(((java.sql.Time) value));
         }
-	System.out.println("ExasolTimeType::objectToSql-default");
-	System.out.println("ExasolTimeType::objectToSql-default"+value.getClass().getName());
         return otherToSql(value, database);
     }
 

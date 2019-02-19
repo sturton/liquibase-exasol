@@ -57,36 +57,22 @@ public abstract class JdbcSnapshotGeneratorExasol implements SnapshotGenerator {
     @Override
     public DatabaseObject snapshot(DatabaseObject example, DatabaseSnapshot snapshot, SnapshotGeneratorChain chain) throws DatabaseException, InvalidExampleException {
 
-    System.err.println("jdbcSnapshotGenerator.snapshot - "
-                             +"example=" + example.getObjectTypeName() + "." + example.getName()
-                             + ", snapshot " + snapshot
-                             + ")"
-                        );
-
       
       if (defaultFor != null && defaultFor.isAssignableFrom(example.getClass())) {
-        System.err.println("jdbcSnapshotGenerator.snapshot - defaultFor tests passed "
-                                 + ": returning snapshotObject(example, snapshot)"
-                            );
             return snapshotObject(example, snapshot);
         }
 
         DatabaseObject chainResponse = chain.snapshot(example, snapshot);
         if (chainResponse == null) {
-          System.err.println("jdbcSnapshotGenerator.snapshot -  chainResponse is null - RETURNING"
-                              );
             return null;
         }
 
         if (shouldAddTo(example.getClass(), snapshot)) {
-          System.err.println("jdbcSnapshotGenerator.snapshot -  shouldAddTo");
           if (addsTo() != null) {
-            System.err.println("jdbcSnapshotGenerator.snapshot -  addsTo() != null");
 
             for (Class<? extends DatabaseObject> addType : addsTo()) {
                     if (addType.isAssignableFrom(example.getClass())) {
                         if (chainResponse != null) {
-                           System.err.println("jdbcSnapshotGenerator.snapshot -  addsTo(chainResponse, snapshot)");
 
                           addTo(chainResponse, snapshot);
                         }
@@ -94,11 +80,6 @@ public abstract class JdbcSnapshotGeneratorExasol implements SnapshotGenerator {
                 }
             }
         }
-
-        System.err.println("jdbcSnapshotGenerator.snapshot - "
-                             +"RETURNING chainresponse=" + chainResponse.getName()
-                             + ")"
-                        );
 
         return chainResponse;
 
