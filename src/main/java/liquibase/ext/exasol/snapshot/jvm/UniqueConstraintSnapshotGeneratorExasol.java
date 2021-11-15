@@ -11,7 +11,7 @@ import liquibase.snapshot.jvm.UniqueConstraintSnapshotGenerator ;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.structure.DatabaseObject;
 import liquibase.structure.core.*;
-import liquibase.util.StringUtils;
+import liquibase.util.StringUtil;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -63,7 +63,7 @@ public class UniqueConstraintSnapshotGeneratorExasol extends JdbcSnapshotGenerat
     }
 
     protected List<Map<String, ?>> listColumns(UniqueConstraint example, Database database) throws DatabaseException {
-        Table table = example.getTable();
+        Table table = (Table) example.getRelation();
         Schema schema = table.getSchema();
         String name = example.getName();
 

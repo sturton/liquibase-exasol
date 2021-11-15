@@ -1,4 +1,4 @@
-package liquibase.sqlgenerator.core;
+package liquibase.ext.exasol.sqlgenerator;
 
 import liquibase.CatalogAndSchema;
 import liquibase.database.Database;
@@ -6,6 +6,7 @@ import liquibase.ext.exasol.database.ExasolDatabase;
 import liquibase.sql.Sql;
 import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
+import liquibase.sqlgenerator.core.GetViewDefinitionGenerator;
 import liquibase.statement.core.GetViewDefinitionStatement;
 
 public class GetViewDefinitionGeneratorExasol extends GetViewDefinitionGenerator {
