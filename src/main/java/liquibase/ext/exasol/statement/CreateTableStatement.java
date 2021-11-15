@@ -1,10 +1,5 @@
 package liquibase.ext.exasol.statement;
 
-import liquibase.datatype.LiquibaseDataType;
-import liquibase.statement.*;
-
-import java.util.*;
-
 public class CreateTableStatement extends liquibase.statement.core.CreateTableStatement {
 
     /**

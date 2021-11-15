@@ -1,5 +1,6 @@
 package liquibase.ext.exasol.snapshot.jvm;
 
+import liquibase.Scope;
 import liquibase.database.AbstractJdbcDatabase;
 import liquibase.database.Database;
 import liquibase.ext.exasol.database.ExasolDatabase;
@@ -21,7 +22,7 @@ import liquibase.structure.core.DataType;
 import liquibase.structure.core.Relation;
 import liquibase.structure.core.Table;
 import liquibase.structure.core.View;
-import liquibase.util.StringUtils;
+import liquibase.util.StringUtil;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -42,6 +43,7 @@ import liquibase.util.SqlUtil;
 public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
 
     private static final String LIQUIBASE_COMPLETE = "liquibase-complete";
+    private static final String EXECUTOR_NAME = "jdbc";
 
 
     public ColumnSnapshotGeneratorExasol() {
@@ -66,9 +68,9 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
 
         String rawTableName = (String) columnMetadataResultSet.get("TABLE_NAME");
         String rawColumnName = (String) columnMetadataResultSet.get("COLUMN_NAME");
-        String rawSchemaName = StringUtils.trimToNull((String) columnMetadataResultSet.get("TABLE_SCHEM"));
-        String rawCatalogName = StringUtils.trimToNull((String) columnMetadataResultSet.get("TABLE_CAT"));
-        String remarks = StringUtils.trimToNull((String) columnMetadataResultSet.get("REMARKS"));
+        String rawSchemaName = StringUtil.trimToNull((String) columnMetadataResultSet.get("TABLE_SCHEM"));
+        String rawCatalogName = StringUtil.trimToNull((String) columnMetadataResultSet.get("TABLE_CAT"));
+        String remarks = StringUtil.trimToNull((String) columnMetadataResultSet.get("REMARKS"));
         if (remarks != null) {
             remarks = remarks.replace("''", "'"); //come back escaped sometimes
         }
@@ -76,7 +78,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
 
 
         Column column = new Column();
-        column.setName(StringUtils.trimToNull(rawColumnName));
+        column.setName(StringUtil.trimToNull(rawColumnName));
         column.setRelation(table);
         column.setRemarks(remarks);
         column.setOrder(position);
@@ -91,14 +93,14 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
         if (database.supportsAutoIncrement()) {
             if (table instanceof Table) {
                 if (database instanceof ExasolDatabase) {
-                    String data_default = StringUtils.trimToEmpty((String) columnMetadataResultSet.get("DATA_DEFAULT")).toLowerCase();
+                    String data_default = StringUtil.trimToEmpty((String) columnMetadataResultSet.get("DATA_DEFAULT")).toLowerCase();
                     if (data_default.contains("iseq$$") && data_default.endsWith("nextval")) {
                         column.setAutoIncrementInformation(new Column.AutoIncrementInformation());
                     }
                 } else {
                     if (columnMetadataResultSet.containsColumn("IS_AUTOINCREMENT")) {
                         String isAutoincrement = (String) columnMetadataResultSet.get("IS_AUTOINCREMENT");
-                        isAutoincrement = StringUtils.trimToNull(isAutoincrement);
+                        isAutoincrement = StringUtil.trimToNull(isAutoincrement);
                         if (isAutoincrement == null) {
                             column.setAutoIncrementInformation(null);
                         } else if (isAutoincrement.equals("YES")) {
@@ -106,7 +108,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
                         } else if (isAutoincrement.equals("NO")) {
                             column.setAutoIncrementInformation(null);
                         } else if (isAutoincrement.equals("")) {
-                            LogFactory.getLogger().info("Unknown auto increment state for column " + column.toString() + ". Assuming not auto increment");
+                            Scope.getCurrentScope().getLog(getClass()).info("Unknown auto increment state for column " + column.toString() + ". Assuming not auto increment");
                             column.setAutoIncrementInformation(null);
                         } else {
                             throw new UnexpectedLiquibaseException("Unknown is_autoincrement value: '" + isAutoincrement + "'");
@@ -117,7 +119,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
                         {
                             selectStatement = "select " + database.escapeColumnName(rawCatalogName, rawSchemaName, rawTableName, rawColumnName) + " from " + database.escapeTableName(rawCatalogName, rawSchemaName, rawTableName) + " where 0=1";
                         }
-                        LogFactory.getLogger().debug("Checking " + rawTableName + "." + rawCatalogName + " for auto-increment with SQL: '" + selectStatement + "'");
+                        Scope.getCurrentScope().getLog(getClass()).fine("Checking " + rawTableName + "." + rawCatalogName + " for auto-increment with SQL: '" + selectStatement + "'");
                         Connection underlyingConnection = ((JdbcConnection) database.getConnection()).getUnderlyingConnection();
                         Statement statement = null;
                         ResultSet columnSelectRS = null;
@@ -179,7 +181,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
                 column = (Column) example;
                 example.setAttribute(LIQUIBASE_COMPLETE, null);
             } else {
-                JdbcDatabaseSnapshot.CachingDatabaseMetaData databaseMetaData = ((JdbcDatabaseSnapshot) snapshot).getMetaData();
+                JdbcDatabaseSnapshot.CachingDatabaseMetaData databaseMetaData = ((JdbcDatabaseSnapshot) snapshot).getMetaDataFromCache();
 
                 columnMetadataRs = databaseMetaData.getColumns(((AbstractJdbcDatabase) database).getJdbcCatalogName(schema), ((AbstractJdbcDatabase) database).getJdbcSchemaName(schema), relation.getName(), example.getName());
 
@@ -207,7 +209,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
             List<CachedRow> allColumnsMetadataRs = null;
             try {
 
-                JdbcDatabaseSnapshot.CachingDatabaseMetaData databaseMetaData = ((JdbcDatabaseSnapshot) snapshot).getMetaData();
+                JdbcDatabaseSnapshot.CachingDatabaseMetaData databaseMetaData = ((JdbcDatabaseSnapshot) snapshot).getMetaDataFromCache();
 
                 Schema schema;
 
@@ -232,7 +234,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
             Map<String, Column.AutoIncrementInformation> autoIncrementColumns = (Map) snapshot.getScratchData("autoIncrementColumns");
             if (autoIncrementColumns == null) {
                 autoIncrementColumns = new HashMap<String, Column.AutoIncrementInformation>();
-                Executor executor = ExecutorService.getInstance().getExecutor(database);
+                Executor executor = Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(EXECUTOR_NAME, database);
                 try {
                     List<Map<String, ?>> rows = executor.queryForList(new RawSqlStatement("select object_schema_name(object_id) as schema_name, object_name(object_id) as table_name, name as column_name, cast(seed_value as bigint) as start_value, cast(increment_value as bigint) as increment_by from sys.identity_columns"));
                     for (Map row : rows) {
@@ -247,7 +249,7 @@ public class ColumnSnapshotGeneratorExasol extends JdbcSnapshotGenerator {
                     }
                     snapshot.setScratchData("autoIncrementColumns", autoIncrementColumns);
                 } catch (DatabaseException e) {
-                    LogFactory.getInstance().getLog().info("Could not read identity information", e);
+                    Scope.getCurrentScope().getLog(getClass()).info("Could not read identity information", e);
                 }
             }
             if (column.getRelation() != null && column.getSchema() != null) {

@@ -22,6 +22,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 import liquibase.CatalogAndSchema;
+import liquibase.Scope;
 import liquibase.database.AbstractJdbcDatabase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseConnection;
@@ -44,6 +45,7 @@ import liquibase.structure.core.Schema;
  */
 public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
     public static final String PRODUCT_NAME = "EXASolution";
+	private static final String EXECUTOR_NAME = "jdbc";
 
 	private String databaseName=null;
 
@@ -61,7 +63,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 	protected String getDatabaseName(){
 		if (null==databaseName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 			try {
-				databaseName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT PARAM_VALUE FROM SYS.EXA_METADATA WHERE PARAM_NAME = 'databaseName'"), String.class);
+				databaseName = (String) Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(EXECUTOR_NAME, this).queryForObject(new RawSqlStatement("SELECT PARAM_VALUE FROM SYS.EXA_METADATA WHERE PARAM_NAME = 'databaseName'"), String.class);
 			} catch (DatabaseException e) {
 				e.printStackTrace(System.err);
 			}
@@ -180,7 +182,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 	public String getDefaultSchemaName() {
 		if (null==defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 			try {
-				defaultSchemaName = (String) ExecutorService.getInstance().getExecutor(this).queryForObject(new RawSqlStatement("SELECT CURRENT_SCHEMA"), String.class);
+				defaultSchemaName = (String) Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(EXECUTOR_NAME, this).queryForObject(new RawSqlStatement("SELECT CURRENT_SCHEMA"), String.class);
 			} catch (DatabaseException e) {
 				e.printStackTrace(System.err);
 			}
@@ -198,7 +200,7 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
 
 	    if (null!=defaultSchemaName && getConnection() != null && (!(getConnection() instanceof OfflineConnection))) {
 		    try {
-			    ExecutorService.getInstance().getExecutor(this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
+				Scope.getCurrentScope().getSingleton(ExecutorService.class).getExecutor(EXECUTOR_NAME, this).execute(new RawSqlStatement("OPEN SCHEMA "+schemaName));
 		    } catch (DatabaseException e) {
 			    e.printStackTrace(System.err);
 		    }
@@ -348,7 +350,8 @@ public class ExasolDatabase extends AbstractJdbcDatabase implements Database {
      * Returns Exasol-specific auto-increment DDL clause.
      */
     @Override
-    public String getAutoIncrementClause(final BigInteger startWith, final BigInteger incrementBy) {
+    public String getAutoIncrementClause(final BigInteger startWith, final BigInteger incrementBy,
+										 String generationType, Boolean defaultOnNull) {
         if (!supportsAutoIncrement()) {
             return "";
         }

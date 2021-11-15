@@ -3,6 +3,7 @@
  */
 package liquibase.ext.exasol.sqlgenerator;
 
+import liquibase.Scope;
 import liquibase.database.Database;
 import liquibase.datatype.DataTypeFactory;
 import liquibase.datatype.LiquibaseDataType;
@@ -20,7 +21,7 @@ import liquibase.statement.AutoIncrementConstraint;
 import liquibase.statement.ForeignKeyConstraint;
 import liquibase.statement.UniqueConstraint;
 import liquibase.ext.exasol.statement.CreateTableStatement;
-import liquibase.util.StringUtils;
+import liquibase.util.StringUtil;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -81,28 +82,18 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 			}
 
 			if (isAutoIncrement &&
-					(database.getAutoIncrementClause(null, null)!=null) &&
-					(!database.getAutoIncrementClause(null, null).equals(""))) {
+					(database.getAutoIncrementClause(null, null, null, null)!=null) &&
+					(!database.getAutoIncrementClause(null, null, null, null).equals(""))) {
 				if (database.supportsAutoIncrement()) {
-					buffer.append(" ").append(database.getAutoIncrementClause(null, null)).append(" ");
+					buffer.append(" ").append(database.getAutoIncrementClause(null, null, null, null)).append(" ");
 				} else {
-					LogFactory.getLogger().warning(database.getShortName()+" does not support autoincrement columns as request for "+(database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName())));
+					Scope.getCurrentScope().getLog(getClass()).warning(database.getShortName()+" does not support autoincrement columns as request for "+(database.escapeTableName(statement.getCatalogName(), statement.getSchemaName(), statement.getTableName())));
 				}
 			}
 
-			/*@TODO 
-			The signature for CreateTableStatement.getNotNullColumns() changed 
-
-			3.4.2 - ? : public Set<String> getNotNullColumns() 
-			3.5.? - ? : Map<String, NotNullConstraint> getNotNullColumns()  
-
-			statement.getNotNullColumns().contains(column) compiles but fails under current   
-			Map<String, NotNullConstraint> notNullColumns = statement.getNotNullColumns();
-			*/
-			if (statement.getNotNullColumns().contains(column) ) {
+			if (statement.getNotNullColumns().containsKey(column) ) {
 				buffer.append(" NOT NULL");
 			}
-			/* */
 
 			if (columnIterator.hasNext()) {
 				buffer.append(", ");
@@ -115,7 +106,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 
             if (statement.getPrimaryKeyConstraint() != null && statement.getPrimaryKeyConstraint().getColumns().size() > 0) {
                 if (database.supportsPrimaryKeyNames()) {
-                    String pkName = StringUtils.trimToNull(statement.getPrimaryKeyConstraint().getConstraintName());
+                    String pkName = StringUtil.trimToNull(statement.getPrimaryKeyConstraint().getConstraintName());
                     if (pkName == null) {
                         pkName = database.generatePrimaryKeyName(statement.getTableName());
                     }
@@ -125,7 +116,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
                     }
                 }
                 buffer.append(" PRIMARY KEY (");
-                buffer.append(database.escapeColumnNameList(StringUtils.join(statement.getPrimaryKeyConstraint().getColumns(), ", ")));
+                buffer.append(database.escapeColumnNameList(StringUtil.join(statement.getPrimaryKeyConstraint().getColumns(), ", ")));
                 buffer.append(")");
 
                 buffer.append(",");
@@ -163,7 +154,7 @@ public class CreateTableGeneratorExasol extends CreateTableGenerator {
 				buffer.append(database.escapeConstraintName(uniqueConstraint.getConstraintName()));
 			}
 			buffer.append(" UNIQUE (");
-			buffer.append(database.escapeColumnNameList(StringUtils.join(uniqueConstraint.getColumns(), ", ")));
+			buffer.append(database.escapeColumnNameList(StringUtil.join(uniqueConstraint.getColumns(), ", ")));
 			buffer.append(")");
 			buffer.append(",");
 		}
